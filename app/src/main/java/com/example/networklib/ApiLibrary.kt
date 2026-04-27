@@ -20,16 +20,22 @@ class ApiLibrary private constructor(
     companion object {
         @Volatile private var instance: ApiLibrary? = null
 
-        fun init(config: ApiConfig, context: Context): ApiLibrary {
-            return instance ?: synchronized(this) {
-                val client = ApiClient(config, context)
-                val service = client.retrofit.create(ApiService::class.java)
-                ApiLibrary(ApiRepository(service)).also { instance = it }
+        private const val DEFAULT_INSTANCE_NAME = "default"
+
+        fun init (context: Context, serviceNames:Map<String, ApiConfig>, name: String = DEFAULT_INSTANCE_NAME): ApiLibrary {
+            return synchronized(this) {
+                // Create a service for each named config
+                val services = serviceNames.mapValues { (_, config) ->
+                    ApiClient(config, context)
+                        .retrofit
+                        .create(ApiService::class.java)
+                }
+                ApiLibrary(ApiRepository(services)).also { instance = it }
             }
         }
 
-        fun getInstance(): ApiLibrary {
-            return instance ?: throw IllegalStateException("ApiLibrary not initialized. Call init() first.")
+        fun getInstance(name: String = DEFAULT_INSTANCE_NAME): ApiLibrary {
+            return instance ?: throw IllegalStateException("ApiLibrary with name '$name' not initialized. Call init() first.")
         }
     }
 }

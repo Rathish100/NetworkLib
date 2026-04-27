@@ -9,5 +9,6 @@ data class ApiConfig(
     val retryCount: Int = 3,
     val cacheEnabled: Boolean = true,
     val cacheSizeMb: Long = 10L,
-    val isDebug: Boolean = false
+    val isDebug: Boolean = false,
+    val trustAllCertificates: Boolean = false
 )

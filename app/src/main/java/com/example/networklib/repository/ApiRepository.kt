@@ -10,10 +10,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-class ApiRepository(private val service: ApiService) {
+class ApiRepository(private val serviceNames: Map<String, ApiService>) {
 
     fun execute(request: ApiRequest): Flow<ApiResponse<JsonElement>> = flow {
         emit(ApiResponse.Loading)
+        val service = serviceNames[request.serviceName]
+            ?: throw IllegalArgumentException(
+                "No client found for name '${request.serviceName}'. " +
+                        "Did you register it in ApiLibrary.init()?"
+            )
+
         try {
             val response = when (request.method) {
                 HttpMethod.GET -> service.get(request.endpoint, request.queryParams, request.headers)
